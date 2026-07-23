@@ -54,6 +54,24 @@ Requires the org unit structure resource table (generate resource tables in
 DHIS2 first) — `analytics_rs_orgunitstructure` on 2.41+, `_orgunitstructure`
 on 2.40.
 
+### `relationship_overview.sql`
+
+Tracker relationship types with their from/to constraints resolved to
+names (tracked entity type, program, program stage per side) and the
+count of actual relationships per type. The Maintenance app only shows
+constraints one relationship type at a time. From the upstream
+[dhis2/dhis2-utils](https://github.com/dhis2/dhis2-utils/tree/master/resources/sql)
+`admin_tracker_queries.sql`.
+
+### `invalid_datavalues.sql`
+
+Finds stored data values that don't match their data element's value
+type (non-numeric values on numeric elements, invalid booleans) or that
+sit in periods outside a reasonable range. These break analytics and are
+not covered by DHIS2's built-in (metadata-only) data integrity checks.
+Cleanup companion: [`sql/maintenance/delete_data_out_of_range.sql`](../maintenance/delete_data_out_of_range.sql).
+Adapted from the upstream `integrity_checks.sql`.
+
 ### `table_dependencies.sql`
 
 Creates a helper function listing every table with a foreign key to a given
@@ -71,6 +89,8 @@ SELECT * FROM d2_dependencies('dataelement', 'dataelementid');
 | `dataset_disaggregations.sql` | ✅ | ✅ | ✅ | ✅ |
 | `high_volume_dataelements.sql` | ✅ | ✅ | ✅ | ✅ |
 | `enrollment_stats.sql` | ✅ | ✅ | ✅ | ✅ |
+| `relationship_overview.sql` | ✅ | ✅ | ✅ | ✅ |
+| `invalid_datavalues.sql` | ✅ | ✅ | ✅ | ✅ |
 | `table_dependencies.sql` | ✅ | ✅ | ✅ | ✅ |
 
 Two queries bridge cross-version table renames automatically with

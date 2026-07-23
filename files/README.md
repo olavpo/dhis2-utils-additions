@@ -28,6 +28,20 @@ option combo before import.
 ./replace_uid.sh datavalues.json VYHuIGXpfow wnsR66pfYZ1
 ```
 
+### `clean_custom_form_html.sh`
+
+Strips verbose formatting from custom data entry form HTML pasted from
+MS Word: presentational tags, inline styles and layout attributes,
+keeping table structure and inputs (which get a uniform centered style).
+Aggressive by design — review the result before uploading. The file is
+modified in place. From the upstream
+[dhis2/dhis2-utils](https://github.com/dhis2/dhis2-utils/tree/master/resources/util)
+`clean_cde.sh`, made portable (GNU and BSD/macOS sed).
+
+```bash
+./clean_custom_form_html.sh form.html
+```
+
 ### `prune_orgunit_metadata.py`
 
 Strips an org unit metadata export (organisationUnits, -Groups, -GroupSets,
