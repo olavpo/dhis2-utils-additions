@@ -50,8 +50,9 @@ month. Pass the program UID as a psql variable:
 psql -h localhost -U dhis -d dhis2 -v program_uid=IpHINAT79UW -f enrollment_stats.sql
 ```
 
-Requires the `_orgunitstructure` resource table (generate resource tables
-in DHIS2 first).
+Requires the org unit structure resource table (generate resource tables in
+DHIS2 first) — `analytics_rs_orgunitstructure` on 2.41+, `_orgunitstructure`
+on 2.40.
 
 ### `table_dependencies.sql`
 
@@ -72,7 +73,8 @@ SELECT * FROM d2_dependencies('dataelement', 'dataelementid');
 | `enrollment_stats.sql` | ✅ | ✅ | ✅ | ✅ |
 | `table_dependencies.sql` | ✅ | ✅ | ✅ | ✅ |
 
-Two queries bridge cross-version table renames automatically with a
-session-local temp view: `dataset_disaggregations.sql` (2.40's
+Two queries bridge cross-version table renames automatically with
+session-local temp views: `dataset_disaggregations.sql` (2.40's
 `dataelementcategoryoption` → `categoryoption`) and `enrollment_stats.sql`
-(2.40's `programinstance` → `enrollment`).
+(2.40's `programinstance` → `enrollment` and `_orgunitstructure` →
+`analytics_rs_orgunitstructure`).

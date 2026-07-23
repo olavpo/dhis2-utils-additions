@@ -76,9 +76,10 @@ values inside events.
 SELECT shift_tracker_dates(7);
 ```
 
-The function detects the DHIS2 schema at runtime and works both before and
-after the 2.41 tracker table renames (`programinstance` → `enrollment`,
-`programstageinstance` → `event`).
+The function detects the DHIS2 schema at runtime and follows the tracker
+table changes across versions: 2.40's `programinstance`/
+`programstageinstance`, the 2.41 renames to `enrollment`/`event`, and the
+2.43 split of `event` into `trackerevent` and `singleevent`.
 
 ## After shifting
 
