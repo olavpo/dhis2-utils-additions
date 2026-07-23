@@ -1,4 +1,17 @@
--- lists all tables that has a dependency to the given table and column
+-- table_dependencies.sql
+--
+-- Creates a helper function that lists all tables with a foreign key
+-- reference to a given table and column. Handy for working out what will
+-- block a DELETE in the DHIS2 database (e.g. "what references
+-- dataelement.dataelementid?").
+--
+-- Usage:
+--   SELECT * FROM d2_dependencies('dataelement', 'dataelementid');
+--   SELECT * FROM d2_dependencies('categoryoptioncombo', 'categoryoptioncomboid');
+--
+-- Pure PostgreSQL catalog query — works on any DHIS2 version (and any
+-- Postgres database, for that matter).
+
 CREATE OR REPLACE FUNCTION d2_dependencies (dep_table text, dep_column text)
 	RETURNS TABLE (
 		dep_tbl text,

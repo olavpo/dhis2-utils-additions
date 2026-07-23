@@ -1,18 +1,22 @@
--- Query Name: DatasetSummaryStatisticsQuery
--- Purpose: Retrieve dataset-level summary statistics, including counts of completed registrations and data elements,
---           both exclusive and total, associated with each dataset.
-WITH ExclusiveDataElements AS (
-    SELECT 
-        de.dataelementid
-    FROM 
-        datasetelement de
-    GROUP BY 
-        de.dataelementid
-    HAVING 
-        COUNT(DISTINCT de.datasetid) = 1
-)
+-- dataset_usage_stats.sql
+--
+-- Three queries for assessing how much datasets and data elements are
+-- actually used — useful when deciding what can be removed or archived
+-- during metadata cleanup.
+--
+-- 1. Dataset summary: completeness registrations + data element counts
+--    ("exclusive" = data elements that belong to this dataset only)
+-- 2. Data element yearly statistics: data values per year per data element
+--    (adjust the hardcoded years to the range of interest)
+-- 3. Dataset data value counts: total and exclusive data values per dataset
+--
+-- Read-only; safe to run on a production replica. The yearly query scans the
+-- whole datavalue table and can be slow on large databases.
 
-SELECT 
+
+-- 1. Dataset summary statistics: completed registrations and data element
+--    counts (exclusive and total) per dataset.
+SELECT
     ds.name AS dataset_name,
     ds.uid AS dataset_uid,
     ds.created,
@@ -20,29 +24,36 @@ SELECT
     COUNT(DISTINCT cdr.sourceid) AS completed_dataset_registrations,
     COUNT(DISTINCT CASE WHEN ed.dataelementid IS NOT NULL THEN de.dataelementid END) AS exclusive_dataelements_count,
     COUNT(DISTINCT de.dataelementid) AS total_dataelements_count
-FROM 
+FROM
     dataset AS ds
-LEFT JOIN 
+LEFT JOIN
     completedatasetregistration AS cdr ON ds.datasetid = cdr.datasetid
-LEFT JOIN 
+LEFT JOIN
     datasetelement AS de ON ds.datasetid = de.datasetid
-LEFT JOIN 
-    ExclusiveDataElements AS ed ON de.dataelementid = ed.dataelementid
-GROUP BY 
+LEFT JOIN (
+    SELECT
+        de.dataelementid
+    FROM
+        datasetelement de
+    GROUP BY
+        de.dataelementid
+    HAVING
+        COUNT(DISTINCT de.datasetid) = 1
+) AS ed ON de.dataelementid = ed.dataelementid
+GROUP BY
     ds.datasetid;
 
 
-
--- Query Name: DataElementAggregateYearlyStatisticsQuery
--- Purpose: Retrieve yearly statistics for data elements with domaintype 'AGGREGATE' pre-mapped with periods.
+-- 2. Yearly data value statistics per (aggregate domain) data element.
+--    Adjust the years in the CASE columns to the range of interest.
 WITH PeriodYear AS (
-    SELECT 
+    SELECT
         periodid,
         EXTRACT(YEAR FROM enddate) AS year
-    FROM 
+    FROM
         period
 )
-SELECT 
+SELECT
     de.name AS dataelement_name,
     de.uid AS dataelement_uid,
     de.created AS dataelement_created,
@@ -50,35 +61,34 @@ SELECT
     STRING_AGG(DISTINCT ds.name, ', ') AS dataset_names,
     MIN(p.startdate) AS min_startdate,
     MAX(p.enddate) AS max_enddate,
-    COUNT(DISTINCT CASE WHEN py.year = 2020 THEN dv.* END) AS datavalues_2020,
     COUNT(DISTINCT CASE WHEN py.year = 2021 THEN dv.* END) AS datavalues_2021,
     COUNT(DISTINCT CASE WHEN py.year = 2022 THEN dv.* END) AS datavalues_2022,
     COUNT(DISTINCT CASE WHEN py.year = 2023 THEN dv.* END) AS datavalues_2023,
     COUNT(DISTINCT CASE WHEN py.year = 2024 THEN dv.* END) AS datavalues_2024,
-    COUNT(DISTINCT CASE WHEN py.year = 2025 THEN dv.* END) ASavalues_2025,
+    COUNT(DISTINCT CASE WHEN py.year = 2025 THEN dv.* END) AS datavalues_2025,
+    COUNT(DISTINCT CASE WHEN py.year = 2026 THEN dv.* END) AS datavalues_2026,
     COUNT(DISTINCT dv.*) AS total_datavalues
-FROM 
+FROM
     dataelement AS de
-JOIN 
+JOIN
     datasetelement AS dse ON de.dataelementid = dse.dataelementid
-JOIN 
+JOIN
     dataset AS ds ON ds.datasetid = dse.datasetid
-JOIN 
+JOIN
     datavalue AS dv ON de.dataelementid = dv.dataelementid
-JOIN 
+JOIN
     PeriodYear AS py ON dv.periodid = py.periodid
 JOIN
     period AS p ON dv.periodid = p.periodid
-WHERE 
+WHERE
     de.domaintype = 'AGGREGATE'
-GROUP BY 
+GROUP BY
     de.dataelementid;
 
 
-
--- Optimized Query Name: DatasetDataValueStatisticsOptimizedQuery
--- Purpose: Retrieve optimized dataset-level statistics with streamlined datavalue counts.
-SELECT 
+-- 3. Dataset-level data value counts: total, and values belonging to data
+--    elements exclusive to this dataset.
+SELECT
     ds.name AS dataset_name,
     ds.uid AS dataset_uid,
     ds.created,
@@ -87,21 +97,21 @@ SELECT
     COUNT(DISTINCT CASE WHEN s.exclusive_dataelementid IS NOT NULL THEN dv.* END) AS exclusive_datavalues_count,
     -- Count of all datavalues associated with this dataset
     COUNT(DISTINCT dv.*) AS total_datavalues_count
-FROM 
+FROM
     dataset AS ds
-JOIN 
+JOIN
     datasetelement AS dse ON ds.datasetid = dse.datasetid
-JOIN 
+JOIN
     datavalue AS dv ON dse.dataelementid = dv.dataelementid
 LEFT JOIN (
     SELECT
         dse.dataelementid AS exclusive_dataelementid
-    FROM 
+    FROM
         datasetelement AS dse
-    GROUP BY 
+    GROUP BY
         dse.dataelementid
-    HAVING 
+    HAVING
         COUNT(DISTINCT dse.datasetid) = 1
 ) AS s ON dse.dataelementid = s.exclusive_dataelementid
-GROUP BY 
+GROUP BY
     ds.datasetid;
