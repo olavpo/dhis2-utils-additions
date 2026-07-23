@@ -9,8 +9,19 @@
 -- Useful for reviewing how datasets/data elements are disaggregated, e.g.
 -- when harmonising category combos or preparing metadata cleanup.
 --
--- Read-only. Produces one row per combination, so output can be large;
--- filter on ds.name / ds.uid to narrow it down.
+-- Read-only (apart from a session-local temp view). Produces one row per
+-- combination, so output can be large; filter on ds.name / ds.uid to narrow
+-- it down.
+--
+-- Works on DHIS2 2.40 (dataelementcategoryoption) and 2.41+ (categoryoption):
+-- a temp view bridges the table rename on older versions.
+
+DO $$
+BEGIN
+    IF to_regclass('public.categoryoption') IS NULL THEN
+        EXECUTE 'CREATE TEMP VIEW categoryoption AS SELECT * FROM dataelementcategoryoption';
+    END IF;
+END $$;
 
 select
 	ds.name as dataset,

@@ -4,9 +4,8 @@ Reads a metadata.json containing organisationUnits, organisationUnitGroups,
 organisationUnitGroupSets and organisationUnitLevels, and strips each object
 down to the fields needed to recreate the org unit hierarchy elsewhere
 (names, IDs, relationships, geometry, opening dates). Everything else -
-sharing, access, attribute values, audit fields etc. - is dropped, which
-typically shrinks the file dramatically and avoids importing irrelevant
-detail into the target instance.
+sharing, access, attribute values, audit fields etc. - is dropped, to avoid
+importing irrelevant detail into the target instance.
 
 Usage:
     python prune_orgunit_metadata.py metadata.json [-o metadata_pruned.json]
@@ -83,7 +82,7 @@ def main():
     data = prune(data)
 
     with open(args.output, "w") as file:
-        json.dump(data, file, indent=4)
+        json.dump(data, file, indent=2)
 
     print(f"Pruned metadata saved to '{args.output}'")
 
