@@ -24,7 +24,9 @@ aggregate data up to the present:
 - Supported period types: Daily, Weekly, Monthly, Quarterly, SixMonthly,
   Yearly. Data of other period types (e.g. FinancialOct, WeeklyWednesday)
   is left untouched.
-- Missing target periods are created automatically.
+- Missing target periods are created automatically — including the ISO
+  period name in the NOT NULL `iso` column that 2.43 added to the period
+  table.
 - Shift **forward only** (positive `num_periods`).
 - Data elements shared between datasets are shifted once per
   `shift_dataset_periods` call — when datasets overlap, prefer

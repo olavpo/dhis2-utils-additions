@@ -48,7 +48,24 @@ $$
 DECLARE
     period_sequence text;
     OLD_PERIOD RECORD;
+    iso_column text := '';
+    iso_value text := '';
 BEGIN
+    -- 2.43+ has a NOT NULL iso column on period holding the ISO period
+    -- name (e.g. 202607, 2026Q3, 2026W27); populate it when present.
+    IF EXISTS (SELECT 1 FROM information_schema.columns
+               WHERE table_schema = 'public' AND table_name = 'period'
+                 AND column_name = 'iso') THEN
+        iso_column := ', iso';
+        iso_value := $iso$,
+            CASE WHEN t.frequency = 'Daily' THEN to_char(t.new_date, 'YYYYMMDD')
+                 WHEN t.frequency = 'Weekly' THEN to_char(t.new_date, 'IYYY') || 'W' || date_part('week', t.new_date)::int
+                 WHEN t.frequency = 'Monthly' THEN to_char(t.new_date, 'YYYYMM')
+                 WHEN t.frequency = 'Quarterly' THEN to_char(t.new_date, 'YYYY"Q"Q')
+                 WHEN t.frequency = 'SixMonthly' THEN to_char(t.new_date, 'YYYY') || 'S' || (CASE WHEN date_part('month', t.new_date) < 7 THEN 1 ELSE 2 END)
+                 WHEN t.frequency = 'Yearly' THEN to_char(t.new_date, 'YYYY')
+            END$iso$;
+    END IF;
     -- DHIS2 <= 2.40 draws period ids from hibernate_sequence; 2.41+ has a
     -- dedicated sequence.
     SELECT CASE WHEN to_regclass('public.period_seq') IS NOT NULL
@@ -82,21 +99,21 @@ BEGIN
 
     -- Create any target periods that do not exist yet
     EXECUTE format($ins$
-        INSERT INTO period (periodid, periodtypeid, startdate, enddate)
-        SELECT nextval(%L), t.periodtypeid, t.new_date,
+        INSERT INTO period (periodid, periodtypeid, startdate, enddate%3$s)
+        SELECT nextval(%1$L), t.periodtypeid, t.new_date,
             CASE WHEN t.frequency = 'Daily' THEN t.new_date
                  WHEN t.frequency = 'Weekly' THEN t.new_date + 6
                  WHEN t.frequency = 'Monthly' THEN (t.new_date + INTERVAL '1 MONTH - 1 DAY')::date
                  WHEN t.frequency = 'Quarterly' THEN (t.new_date + INTERVAL '3 MONTH - 1 DAY')::date
                  WHEN t.frequency = 'SixMonthly' THEN (t.new_date + INTERVAL '6 MONTH - 1 DAY')::date
                  WHEN t.frequency = 'Yearly' THEN (t.new_date + INTERVAL '1 YEAR - 1 DAY')::date
-            END
+            END%4$s
         FROM (SELECT DISTINCT periodtypeid, frequency, new_date
-              FROM tbl_shift_date WHERE new_date IS NOT NULL AND frequency = %L) t
+              FROM tbl_shift_date WHERE new_date IS NOT NULL AND frequency = %2$L) t
         WHERE NOT EXISTS (
             SELECT 1 FROM period p
             WHERE p.periodtypeid = t.periodtypeid AND p.startdate = t.new_date)
-    $ins$, period_sequence, period_type);
+    $ins$, period_sequence, period_type, iso_column, iso_value);
 
     CREATE INDEX ON tbl_shift_date (old_periodid);
 
@@ -135,7 +152,24 @@ $$
 DECLARE
     period_sequence text;
     OLD_PERIOD RECORD;
+    iso_column text := '';
+    iso_value text := '';
 BEGIN
+    -- 2.43+ has a NOT NULL iso column on period holding the ISO period
+    -- name (e.g. 202607, 2026Q3, 2026W27); populate it when present.
+    IF EXISTS (SELECT 1 FROM information_schema.columns
+               WHERE table_schema = 'public' AND table_name = 'period'
+                 AND column_name = 'iso') THEN
+        iso_column := ', iso';
+        iso_value := $iso$,
+            CASE WHEN t.frequency = 'Daily' THEN to_char(t.new_date, 'YYYYMMDD')
+                 WHEN t.frequency = 'Weekly' THEN to_char(t.new_date, 'IYYY') || 'W' || date_part('week', t.new_date)::int
+                 WHEN t.frequency = 'Monthly' THEN to_char(t.new_date, 'YYYYMM')
+                 WHEN t.frequency = 'Quarterly' THEN to_char(t.new_date, 'YYYY"Q"Q')
+                 WHEN t.frequency = 'SixMonthly' THEN to_char(t.new_date, 'YYYY') || 'S' || (CASE WHEN date_part('month', t.new_date) < 7 THEN 1 ELSE 2 END)
+                 WHEN t.frequency = 'Yearly' THEN to_char(t.new_date, 'YYYY')
+            END$iso$;
+    END IF;
     -- DHIS2 <= 2.40 draws period ids from hibernate_sequence; 2.41+ has a
     -- dedicated sequence.
     SELECT CASE WHEN to_regclass('public.period_seq') IS NOT NULL
@@ -167,21 +201,21 @@ BEGIN
 
     -- Create any target periods that do not exist yet
     EXECUTE format($ins$
-        INSERT INTO period (periodid, periodtypeid, startdate, enddate)
-        SELECT nextval(%L), t.periodtypeid, t.new_date,
+        INSERT INTO period (periodid, periodtypeid, startdate, enddate%3$s)
+        SELECT nextval(%1$L), t.periodtypeid, t.new_date,
             CASE WHEN t.frequency = 'Daily' THEN t.new_date
                  WHEN t.frequency = 'Weekly' THEN t.new_date + 6
                  WHEN t.frequency = 'Monthly' THEN (t.new_date + INTERVAL '1 MONTH - 1 DAY')::date
                  WHEN t.frequency = 'Quarterly' THEN (t.new_date + INTERVAL '3 MONTH - 1 DAY')::date
                  WHEN t.frequency = 'SixMonthly' THEN (t.new_date + INTERVAL '6 MONTH - 1 DAY')::date
                  WHEN t.frequency = 'Yearly' THEN (t.new_date + INTERVAL '1 YEAR - 1 DAY')::date
-            END
+            END%4$s
         FROM (SELECT DISTINCT periodtypeid, frequency, new_date
-              FROM tbl_shift_date WHERE new_date IS NOT NULL AND frequency = %L) t
+              FROM tbl_shift_date WHERE new_date IS NOT NULL AND frequency = %2$L) t
         WHERE NOT EXISTS (
             SELECT 1 FROM period p
             WHERE p.periodtypeid = t.periodtypeid AND p.startdate = t.new_date)
-    $ins$, period_sequence, period_type);
+    $ins$, period_sequence, period_type, iso_column, iso_value);
 
     CREATE INDEX ON tbl_shift_date (old_periodid);
 
