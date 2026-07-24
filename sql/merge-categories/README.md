@@ -1,8 +1,34 @@
 # DHIS2 Metadata Deduplication — SQL Functions
 
 Direct-database SQL functions for deduplicating DHIS2 category metadata.
-Use these when the DHIS2 API rejects the merge (DHIS2 ≥ 2.40 enforces stricter
-import validation that blocks many metadata restructuring operations).
+Use these when no native merge endpoint exists for the type on your
+version (see below), or when you only have database access.
+
+## Prefer the native merge endpoints where they exist
+
+Newer DHIS2 versions provide `POST /api/<type>/merge`, which performs the
+same data-safe migration (references + data values + audit, in one
+transaction, with a `LAST_UPDATED` or `DISCARD` data strategy):
+
+```json
+{"sources": ["uid", ...], "target": "uid", "deleteSources": true,
+ "dataMergeStrategy": "LAST_UPDATED"}
+```
+
+Availability is version-dependent — **probe, don't assume**: an empty
+`POST /api/<type>/merge {}` returns `404`/`405` if the endpoint doesn't
+exist, `409`/`400` if it does.
+
+| Type | 2.40–2.41 | 2.42 | 2.43+ |
+|---|---|---|---|
+| categoryOptionCombos | SQL (this toolkit) | API merge | API merge |
+| dataElements, indicators, organisationUnits | SQL/manual | API merge | API merge |
+| categories, categoryOptions, categoryCombos | SQL (this toolkit) | SQL (this toolkit) | API merge |
+
+So on a current DHIS2 the API endpoint is the first choice; this toolkit
+is the tested path for **older versions**, for **offline work on a
+database copy**, and for the **diagnostic functions** (`*_dup_list`,
+`*_dup_count`), which are useful on every version.
 
 All functions live in `merge_functions.sql` and are loaded once via `psql`.
 
