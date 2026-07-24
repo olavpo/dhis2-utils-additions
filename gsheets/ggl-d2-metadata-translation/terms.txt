@@ -1,0 +1,27 @@
+DHIS2 Metadata Review Tool
+Terms and Conditions ("Terms")
+
+Last updated: May 21, 2019
+
+Please read these Terms and Conditions ("Terms", "Terms and Conditions") carefully before using the DHIS2 Metadata Review Tool G Suite add-on (the "Software").
+
+Your access to and use of the Service is conditioned on your acceptance of and compliance with these Terms. These Terms apply to all visitors, users and others who access or use the Software.
+By accessing or using the Software you agree to be bound by these Terms. If you disagree with any part of the terms then you may not access the Software. 
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+# Links To Other Web Sites
+The Software may contain links to third-party web sites or services that are not owned or controlled by the developer of the DHIS2 Metadata Translation Tool, and we assume no responsibility for the content, privacy policies, or practices of any third party web sites or services. You further acknowledge and agree that  shall not be responsible or liable, directly or indirectly, for any damage or loss caused or alleged to be caused by or in connection with use of or reliance on any such content, goods or services available on or through any such web sites or services.
+
+We strongly advise you to read the terms and conditions and privacy policies of any third-party web sites or services that you visit.
+
+# Governing Law
+These Terms shall be governed and construed in accordance with the laws of Norway, without regard to its conflict of law provisions.
+
+Our failure to enforce any right or provision of these Terms will not be considered a waiver of those rights. If any provision of these Terms is held to be invalid or unenforceable by a court, the remaining provisions of these Terms will remain in effect. These Terms constitute the entire agreement between us regarding our Service, and supersede and replace any prior agreements we might have between us regarding the Service.
+
+# Changes
+We reserve the right, at our sole discretion, to modify or replace these Terms at any time. 
+
+# Contact Us
+If you have any questions about these Terms, please contact us via email olavpo@ifi.uio.no.

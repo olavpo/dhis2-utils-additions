@@ -39,9 +39,37 @@ no longer clutter the dimension list in Data Visualizer and friends.
 Run Analytics Tables export afterwards for the change to take effect in
 analytics.
 
+### `tracker_to_aggregate.sh`
+
+Transfers program indicator values into aggregate data elements via the
+analytics API — the standard "tracker to aggregate" pattern. Each
+program indicator carries a metadata attribute holding the CODE of the
+target aggregate data element; the script exports the indicators as a
+data value set with that attribute as ID scheme and imports it as
+aggregate data (optionally into a different instance). Supports dry-run
+(`-n`), and tags imported values with a comment so they can be
+identified later.
+
+```bash
+./tracker_to_aggregate.sh -s https://hmis.example.org -u user:pass \
+    -p 'jSEquR6y8Fx;Z7r9H312QOu' -A vudyDP7jUy5 -l 4 -e LAST_4_QUARTERS
+```
+
+Prerequisites: analytics tables generated on the source; a TEXT
+attribute (assigned to program indicators) holding target data element
+codes. Generalized from Olav's TB tracker-to-aggregate script.
+
+**2.43+ is stricter on import**: the target data elements must belong
+to a data set of the matching period type, and that data set must be
+assigned to the org units being imported to — otherwise every value is
+rejected with "Data set detection failed" / "not usable with org
+unit(s)". On 2.40–2.42 the same import went through without a data
+set. Real configurations normally satisfy this already.
+
 ## Version compatibility
 
 | Tool | 2.40 | 2.41 | 2.42 | 2.43 |
 |---|---|---|---|---|
 | `clear_orgunit_contacts.py` | ✅ | ✅ | ✅ | ✅ |
 | `disable_category_dimensions.sh` | ✅ | ✅ | ✅ | ✅ |
+| `tracker_to_aggregate.sh` | ✅ | ✅ | ✅ | ✅ |

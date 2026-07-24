@@ -54,6 +54,18 @@ Requires the org unit structure resource table (generate resource tables in
 DHIS2 first) — `analytics_rs_orgunitstructure` on 2.41+, `_orgunitstructure`
 on 2.40.
 
+### `metadata_hygiene.sql`
+
+Metadata and usage assessment: abandoned datasets, aggregate data
+elements without data or analysis use, unused indicators, empty or
+never-viewed dashboards/visualizations/maps, inactive-but-enabled
+users, org units missing compulsory group sets or not reporting. A
+summary section (count + share per check) plus listings (name + uid)
+for the actionable checks. Complements the built-in data integrity
+checks, which cover structure but not usage. Modernized from Olav's
+"DHIS2 Tools" metadata assessment queries (the originals used pre-2.36
+tables — `users`, `chart`, `reporttable`, `publicaccess`).
+
 ### `relationship_overview.sql`
 
 Tracker relationship types with their from/to constraints resolved to
@@ -89,6 +101,7 @@ SELECT * FROM d2_dependencies('dataelement', 'dataelementid');
 | `dataset_disaggregations.sql` | ✅ | ✅ | ✅ | ✅ |
 | `high_volume_dataelements.sql` | ✅ | ✅ | ✅ | ✅ |
 | `enrollment_stats.sql` | ✅ | ✅ | ✅ | ✅ |
+| `metadata_hygiene.sql` | ✅ | ✅ | ✅ | ✅ |
 | `relationship_overview.sql` | ✅ | ✅ | ✅ | ✅ |
 | `invalid_datavalues.sql` | ✅ | ✅ | ✅ | ✅ |
 | `table_dependencies.sql` | ✅ | ✅ | ✅ | ✅ |

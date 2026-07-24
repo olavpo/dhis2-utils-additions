@@ -1,0 +1,36 @@
+{
+    "sqlViews": [
+        {
+            "id": "uDemoDatAg1",
+            "name": "Demo data status: aggregate",
+            "description": "Data value counts by data set and org unit level. For checking that a demo/training database has data where expected. Works on all supported DHIS2 versions.",
+            "type": "QUERY",
+            "cacheStrategy": "NO_CACHE",
+            "sqlQuery": "select ds.name as dataset, ou.hierarchylevel as orgunit_level, count(dv.*) as datavalues, max(pe.enddate) as newest_period from dataset ds left join datasetelement dse using (datasetid) left join datavalue dv using (dataelementid) left join period pe on dv.periodid = pe.periodid left join organisationunit ou on dv.sourceid = ou.organisationunitid group by ds.name, ou.hierarchylevel order by ds.name, ou.hierarchylevel;"
+        },
+        {
+            "id": "uDemoDatT40",
+            "name": "Demo data status: tracker (2.40)",
+            "description": "Event counts and newest event date by program and org unit level. Run this variant on DHIS2 2.40 (programstageinstance table).",
+            "type": "QUERY",
+            "cacheStrategy": "NO_CACHE",
+            "sqlQuery": "select p.name as program, ou.hierarchylevel as orgunit_level, count(psi.*) as events, max(psi.executiondate)::date as newest_event from program p left join programstage ps using (programid) left join programstageinstance psi using (programstageid) left join organisationunit ou using (organisationunitid) group by p.name, ou.hierarchylevel order by events desc;"
+        },
+        {
+            "id": "uDemoDatT41",
+            "name": "Demo data status: tracker (2.41-2.42)",
+            "description": "Event counts and newest event date by program and org unit level. Run this variant on DHIS2 2.41 or 2.42 (event table).",
+            "type": "QUERY",
+            "cacheStrategy": "NO_CACHE",
+            "sqlQuery": "select p.name as program, ou.hierarchylevel as orgunit_level, count(ev.*) as events, max(ev.occurreddate)::date as newest_event from program p left join programstage ps using (programid) left join event ev using (programstageid) left join organisationunit ou using (organisationunitid) group by p.name, ou.hierarchylevel order by events desc;"
+        },
+        {
+            "id": "uDemoDatT43",
+            "name": "Demo data status: tracker (2.43+)",
+            "description": "Event counts and newest event date by program and org unit level. Run this variant on DHIS2 2.43 and later (trackerevent and singleevent tables).",
+            "type": "QUERY",
+            "cacheStrategy": "NO_CACHE",
+            "sqlQuery": "select p.name as program, ou.hierarchylevel as orgunit_level, count(*) as events, max(ev.occurreddate)::date as newest_event from (select programstageid, organisationunitid, occurreddate from trackerevent union all select programstageid, organisationunitid, occurreddate from singleevent) ev left join programstage ps using (programstageid) left join program p using (programid) left join organisationunit ou on ev.organisationunitid = ou.organisationunitid group by p.name, ou.hierarchylevel order by events desc;"
+        }
+    ]
+}

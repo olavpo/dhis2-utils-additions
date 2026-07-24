@@ -79,19 +79,12 @@ SELECT * FROM delete_all_data();
 COMMIT;
 ```
 
-### `merge_category_option_combos.sql`
+### Merging duplicate category metadata
 
-Merges a duplicate category option combo into the one to keep: data
-values are merged (newest value wins on conflicts), every other
-reference is repointed (discovered from the catalog), and the duplicate
-is deleted. Typical use: repairing duplicate "default" combos flagged by
-the data integrity checks.
-
-```sql
-BEGIN;
-SELECT merge_category_option_combos('<keep-uid>', '<remove-uid>');
-COMMIT;
-```
+Lives in its own folder: [`sql/merge-categories/`](../merge-categories/) —
+a full toolkit for finding and merging duplicate category options,
+categories, category combos and category option combos, with conflict
+resolution for data values.
 
 ### `fix_sort_order_gaps.sql`
 
@@ -103,6 +96,30 @@ SELECT fix_option_sort_order();                       -- optionvalue
 SELECT fix_visualization_orgunit_sort_order();        -- visualization_organisationunits
 SELECT fix_visualization_datadimension_sort_order();  -- visualization_datadimensionitems
 SELECT fix_sort_order_gaps('sectiondataelements', 'sectionid', 'dataelementid', 0);  -- any table
+SELECT fix_sort_order_gaps('programstagesection_dataelements', 'programstagesectionid', 'dataelementid', 1);
+```
+
+Also defines `sort_options_by_name(optionset_uid)`, which reorders one
+option set's options alphabetically (the Maintenance app only supports
+dragging options one at a time):
+
+```sql
+SELECT sort_options_by_name('VQ2lai3OfVG');
+```
+
+### `generate_completeness.sql`
+
+Generates complete data set registrations from existing data values —
+for demo/training databases imported without completeness information,
+so reporting-rate analytics work. Existing registrations are untouched;
+a period/orgunit is marked complete when at least `min_values` values
+exist.
+
+```sql
+BEGIN;
+SELECT generate_completeness('BfMAe6Itzgt');      -- 1+ values = complete
+SELECT generate_completeness('BfMAe6Itzgt', 5);   -- 5+ values = complete
+COMMIT;
 ```
 
 ### `restore_admin_access.sql`
@@ -127,8 +144,8 @@ before/after row-count verification:
 | `delete_orgunit_tree.sql` | ✅ | ✅ | ✅ | ✅ |
 | `delete_data_out_of_range.sql` | ✅ | ✅ | ✅ | ✅ |
 | `delete_all_data.sql` | ✅ | ✅ | ✅ | ✅ |
-| `merge_category_option_combos.sql` | ✅ | ✅ | ✅ | ✅ |
 | `fix_sort_order_gaps.sql` | ✅ | ✅ | ✅ | ✅ |
+| `generate_completeness.sql` | ✅ | ✅ | ✅ | ✅ |
 | `restore_admin_access.sql` | ✅ | ✅ | ✅ | ✅ |
 
 The catalog-driven design means the same files handle the 2.41 tracker
@@ -145,9 +162,7 @@ rows were already deleted), `delete_data_out_of_range.sql` (original
 missed `datavalueaudit` and favorite references and used 2.40-only
 tracker tables), `clean_data.sql` (original's delete list omitted
 `programinstance`, so it failed on foreign keys),
-`fix_duplicate_default_category_option_combos.sql` (original was a
-one-off with hardcoded ids; on tied timestamps its symmetric delete
-removed *both* duplicate values), `clean_up_option_sort_order.sql` +
+`clean_up_option_sort_order.sql` +
 `clean_up_visualization_*_sort_order.sql` (merged; single-pass
 renumbering could violate primary keys where sort_order is part of the
 key), and `admin_user_queries.sql` (write statements turned into a

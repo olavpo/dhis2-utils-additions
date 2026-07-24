@@ -28,6 +28,18 @@ option combo before import.
 ./replace_uid.sh datavalues.json VYHuIGXpfow wnsR66pfYZ1
 ```
 
+### `flip_geojson_coordinates.js`
+
+Swaps longitude/latitude throughout a GeoJSON file (or a DHIS2
+organisationUnits payload) — for sources that deliver [lat, lon]
+instead of the [lon, lat] that GeoJSON and DHIS2 require. Handles all
+geometry types at any nesting depth. For the import itself, use DHIS2's
+native GeoJSON import (`POST /api/organisationUnits/geometry`).
+
+```bash
+node flip_geojson_coordinates.js input.geojson output.geojson
+```
+
 ### `clean_custom_form_html.sh`
 
 Strips verbose formatting from custom data entry form HTML pasted from

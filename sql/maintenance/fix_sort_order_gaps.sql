@@ -67,3 +67,40 @@ $$ SELECT fix_sort_order_gaps('visualization_organisationunits', 'visualizationi
 CREATE OR REPLACE FUNCTION fix_visualization_datadimension_sort_order()
     RETURNS text LANGUAGE sql AS
 $$ SELECT fix_sort_order_gaps('visualization_datadimensionitems', 'visualizationid', 'datadimensionitemid', 0) $$;
+
+-- Reorder the options of one option set alphabetically by name (the
+-- Maintenance app only supports dragging options one by one).
+CREATE OR REPLACE FUNCTION sort_options_by_name(optionset_uid text)
+    RETURNS text
+    LANGUAGE plpgsql
+AS
+$$
+DECLARE
+    OPTIONSET_ID bigint;
+    ROWS_AFFECTED bigint;
+BEGIN
+    SELECT optionsetid INTO OPTIONSET_ID FROM optionset WHERE uid = optionset_uid;
+    IF OPTIONSET_ID IS NULL THEN
+        RAISE EXCEPTION 'No option set with uid %', optionset_uid;
+    END IF;
+
+    -- park on negatives first (sort_order may be unique-constrained)
+    UPDATE optionvalue ov
+    SET sort_order = -(ranked.new_sort_order) - 1
+    FROM (
+        SELECT optionvalueid,
+               ROW_NUMBER() OVER (ORDER BY name) AS new_sort_order
+        FROM optionvalue
+        WHERE optionsetid = OPTIONSET_ID
+    ) ranked
+    WHERE ov.optionvalueid = ranked.optionvalueid
+      AND (ov.sort_order <> ranked.new_sort_order OR ov.sort_order IS NULL);
+
+    GET DIAGNOSTICS ROWS_AFFECTED = ROW_COUNT;
+
+    UPDATE optionvalue SET sort_order = -(sort_order) - 1
+    WHERE optionsetid = OPTIONSET_ID AND sort_order < 0;
+
+    RETURN format('Reordered %s options by name', ROWS_AFFECTED);
+END
+$$;
