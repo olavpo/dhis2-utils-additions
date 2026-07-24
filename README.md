@@ -61,3 +61,7 @@ and per-version notes.
 - After shifting data or changing category dimensions, run **Analytics
   Tables** export (and restart DHIS2 after period changes) for the changes
   to become visible in analytics.
+
+## License
+
+BSD 3-Clause, © University of Oslo — see [LICENSE](LICENSE).
